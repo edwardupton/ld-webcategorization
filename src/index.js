@@ -15,7 +15,7 @@ import topicClassificationApi from './lib/topic-classification-api';
 
 // Environment is either production (default) or test
 const env = process.env.NODE_ENV || 'production';
-const ASYNC_THROTTLE = 10;
+const ASYNC_THROTTLE = 1;
 
 // Training data will be exposed here for Mocha
 export let trainingData = new Array();
@@ -46,39 +46,44 @@ export const categorizer = async ( trainingSet ) => {
     let topics = [];
 
     // @todo rewrite into something less callback-hell.
-    async.eachLimit( trainingData, ASYNC_THROTTLE, ( site, done ) => {
-      // First render the site
-      siteRetrieve( site )
-      .catch( ( err ) => {
+    async.eachLimit( trainingData, ASYNC_THROTTLE, async ( site, done ) => {
+      console.log( '-> Processing', site );
+      let source;
+      let extraction;
+      let topic;
+
+      try {
+        // First render the site
+        source = await siteRetrieve( site )
+      } catch( err ) {
         console.warn( 'Exception in retrieval ' + site + ':', err );
         topics.push( { site: site, topic: null } );
-        done();
-      })
-      .then( source => {
-        // Secondly extract the text
-        textExtractionApi( source )
-        .catch( ( err ) => {
-          console.warn( 'Exception in extraction ' + site + ':', err );
-          topics.push( { site: site, topic: null } );
-          done();
-        })
-        .then( extraction => {
-          if ( !extraction ) {
-            topics.push( { site: site, topic: null } );
-            return done();
-          }
+      }
 
-          // Thirdly, get the topic of the site
-          topicClassificationApi( extraction )
-          .catch( ( err ) => {
-            console.warn( 'Exception in classification ' + site + ':', err );
-            topics.push( { site: site, topic: null } );
-            done();
-          })
-          .then( topic => topics.push( { site: site, topic: topic } ) )
-          .then( () => done() );
-        } );
-      } );
+      if ( !source ) return done();
+
+      try {
+        // Secondly extract the text
+        extraction = await textExtractionApi( source );
+      } catch( err ) {
+        console.warn( 'Exception in extraction ' + site + ':', err );
+        topics.push( { site: site, topic: null } );
+      }
+
+      if ( !extraction ) return done();
+
+      try {
+        // Thirdly, get the topic of the site
+        topic = await topicClassificationApi( extraction );
+      } catch( err ) {
+        console.warn( 'Exception in classification ' + site + ':', err );
+        topics.push( { site: site, topic: null } );
+      }
+
+      if ( !topic ) return done();
+
+      topics.push( { site: site, topic: topic } );
+      done();
     }, () => {
       const resultsFile = 'results-' + Date.now() + '.json';
 
