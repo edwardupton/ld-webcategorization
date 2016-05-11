@@ -9,20 +9,20 @@ import superagentMock from 'superagent-mock';
  * Internal dependencies
  */
 import mockConfig from '../fixture/superagent-mock';
-import textExtractionApi from '../../src/lib/text-extraction-api.js';
+import topicClassificationApi from '../../src/lib/topic-classification-api.js';
 
 let agent;
 
-describe( 'Lib: Text Extraction API', () => {
+describe( 'Lib: Topic Classification API', () => {
   before( () => {
     agent = superagentMock( superagent, mockConfig );
   } );
 
   it( 'should send the html to the API' , ( done ) => {
-    textExtractionApi( '<b>some text here</b>' )
+    topicClassificationApi( '<b>some text here</b>' )
     .then( text => {
       assert.isString( text );
-      assert.equal( text, 'some text here' );
+      assert.equal( text, 'Science');
       done();
     } );
   } );

@@ -11,6 +11,15 @@ export default [
           }
         };
       }
+
+      if ( match[1] === 'TopicClassification.json' ) {
+        return {
+          output: {
+            status: 1,
+            result: 'Science',
+          }
+        };
+      }
     },
 
     post: ( match, data ) => {

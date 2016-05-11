@@ -7,15 +7,15 @@ import superagent from 'superagent';
 const API_KEY = '7284cd75cb81c08e2e672b7676b0dad7';
 
 /**
- * Uses Datumbox to extract the relevant text from the HTML source.
+ * Uses Datumbox to extract the relevant topic of a given text.
  *
- * @param  String  source The HTML source of the page
+ * @param  String  source The extracted text from a site
  * @return Promise        Resolves to the extracted text
  */
 export default ( source ) => {
   return new Promise( ( resolve, reject ) => {
     superagent
-    .post( 'http://api.datumbox.com/1.0/TextExtraction.json' )
+    .post( 'http://api.datumbox.com/1.0/TopicClassification.json' )
     .field( 'api_key', API_KEY )
     .field( 'text', source )
     .end( ( err, res ) => {
