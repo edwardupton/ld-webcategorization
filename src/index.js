@@ -51,6 +51,7 @@ export const categorizer = async ( trainingSet ) => {
       siteRetrieve( site )
       .catch( ( err ) => {
         console.warn( 'Exception in retrieval ' + site + ':', err );
+        topics.push( { site: site, topic: null } );
         done();
       })
       .then( source => {
@@ -58,6 +59,7 @@ export const categorizer = async ( trainingSet ) => {
         textExtractionApi( source )
         .catch( ( err ) => {
           console.warn( 'Exception in extraction ' + site + ':', err );
+          topics.push( { site: site, topic: null } );
           done();
         })
         .then( extraction => {
@@ -70,13 +72,14 @@ export const categorizer = async ( trainingSet ) => {
           topicClassificationApi( extraction )
           .catch( ( err ) => {
             console.warn( 'Exception in classification ' + site + ':', err );
+            topics.push( { site: site, topic: null } );
             done();
           })
           .then( topic => topics.push( { site: site, topic: topic } ) )
           .then( () => done() );
         } );
       } );
-    }, async () => {
+    }, () => {
       const resultsFile = 'results-' + Date.now() + '.json';
 
       fs.writeFileSync( resultsFile, JSON.stringify( topics ) );
